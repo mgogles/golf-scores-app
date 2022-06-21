@@ -1,0 +1,172 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>PGA Scores</title>
+    <meta charset="utf-8">
+
+    <style>
+    * {
+      box-sizing: border-box;
+      font-family: Courier, Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* Style the top navigation bar */
+    .topnav {
+      overflow: hidden;
+      background-color: #333;
+      color: #fff;
+      padding: 20px;
+    }
+
+    /* Style the topnav links */
+    .topnav a {
+      float: left;
+      display: block;
+      color: #f2f2f2;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+
+    /* Change color on hover */
+    .topnav a:hover {
+      background-color: #ddd;
+      color: black;
+    }
+
+    .leaderboard table, td{
+      background-color: #fff;
+      border: 2px solid #000;
+      border-collapse: collapse;
+      padding: 15px;
+      
+    }
+
+    .score {
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Style the content */
+    .content {
+      background-color: #f5f5f5;
+      padding: 30px 10px 50px 10px;
+    }
+
+    /* Style the footer */
+    .footer {
+      background-color: #fff;
+      padding: 20px;
+    }
+
+
+    </style>
+  </head>
+
+  <body>  
+
+    <div class="topnav">
+
+      <h1 id="tournName"></h1>
+      <p id="tournCourse"></p>
+      <p id="tournCountry"></p>
+  
+    </div>
+
+    <div class="content">
+    <table class="leaderboard">
+      <tr class="bg-info">
+        <th>Pos</th>
+        <th>Player</th>
+        <th>Score</th>
+        <th>Thru</th>
+      </tr>
+
+      <tbody id="myTable">
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+
+<script>
+ 
+  let today = new Date();
+  let tournaments = [];
+  let currentTournament = [];
+
+
+  $.ajax({
+  method: "GET",
+  url: "https://golf-leaderboard-data.p.rapidapi.com/fixtures/2/2022",
+	headers: {
+		"X-RapidAPI-Key": "fbab0f2f4amsh3f34177641d753ep188e9cjsn8c111188ddb2",
+		"X-RapidAPI-Host": "golf-leaderboard-data.p.rapidapi.com"
+    },
+    
+    success:function(response){
+      tournaments = response.results;
+      let currentTournament = tournaments.find(
+        e => Date.parse(e.end_date) + 259200000 >= today.getTime(),
+      );
+
+      $.ajax({
+      method: "GET",
+      url: "https://golf-leaderboard-data.p.rapidapi.com/leaderboard/" + currentTournament.id,
+      headers: {
+        "X-RapidAPI-Key": "fbab0f2f4amsh3f34177641d753ep188e9cjsn8c111188ddb2",
+        "X-RapidAPI-Host": "golf-leaderboard-data.p.rapidapi.com"
+        },    
+        success:function(response){
+          golfers = response.results.leaderboard
+          buildTable(golfers)
+          
+          tournName.insertAdjacentHTML('afterbegin', currentTournament.name);
+          tournCourse.insertAdjacentHTML('afterbegin', currentTournament.course);
+          tournCountry.insertAdjacentHTML('afterbegin', currentTournament.country);
+        }
+      })
+    }
+  })
+
+
+  let golfers = [];
+
+  function buildTable(data){
+    var table = document.getElementById('myTable')
+
+    for (var i = 0; i < data.length; i++){
+      var row = `<tr>
+                  <td>${data[i].position}</td>
+                  <td>${data[i].first_name} ${data[i].last_name}</td>
+                  <td>${data[i].total_to_par}</td>
+                  <td>${data[i].holes_played}</td>
+                </tr>`
+                table.innerHTML += row
+    }
+  }
+
+
+</script>
+
+  </body>
+
+
+</html>
+
+
